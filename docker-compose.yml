@@ -48,6 +48,17 @@ services:
           cpus: '1'
           memory: 1G
 
+  frontend:
+    image: mouadrarhib0031/angular-app:latest
+    container_name: kube_tasks_frontend
+    ports:
+      - "${FRONTEND_PORT}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - app_network
+
 volumes:
   postgres_data:
 

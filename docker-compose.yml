@@ -22,7 +22,7 @@ services:
       - app_network
 
   backend:
-    image: mouadrarhib0031/kube-tasks-backend:1.0.0
+    image: mouadrarhib0031/kube-tasks-backend:latest
     container_name: kube_tasks_backend
     depends_on:
       postgres:
@@ -49,7 +49,7 @@ services:
           memory: 1G
 
   frontend:
-    image: mouadrarhib0031/angular-app:latest
+    image: mouadrarhib0031/kube-tasks-front:latest
     container_name: kube_tasks_frontend
     ports:
       - "${FRONTEND_PORT}:80"

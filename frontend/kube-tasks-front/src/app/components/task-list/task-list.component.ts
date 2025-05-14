@@ -6,11 +6,12 @@ import { Task, TaskPriority, TaskStatus } from '../../models/task.model';
 import { TaskService } from '../../services/task.service';
 import { TaskItemComponent } from '../shared/task-item/task-item.component';
 import { TaskFilterComponent } from '../shared/task-filter/task-filter.component';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-task-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, TaskItemComponent, TaskFilterComponent],
+  imports: [CommonModule, RouterModule, FormsModule, TaskItemComponent, TaskFilterComponent, HttpClientModule],
   template: `
     <section class="task-list-container">
       <div class="flex justify-between align-center mb-6">
@@ -89,6 +90,8 @@ export class TaskListComponent implements OnInit {
   filteredTasks: Task[] = [];
   selectedPriority: string = '';
   selectedStatus: string = '';
+  errorMessage = '';
+  loading = false;
 
   constructor(
     private taskService: TaskService,
@@ -100,9 +103,18 @@ export class TaskListComponent implements OnInit {
   }
 
   loadTasks(): void {
-    this.taskService.getTasks().subscribe(tasks => {
-      this.tasks = tasks;
-      this.applyFilters();
+    this.loading = true;
+    this.errorMessage = '';
+    this.taskService.getAllTasks().subscribe({
+      next: tasks => {
+        this.tasks = tasks;
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Failed to load tasks. Please try again.';
+        this.loading = false;
+      }
     });
   }
 
@@ -115,7 +127,6 @@ export class TaskListComponent implements OnInit {
     this.filteredTasks = this.tasks.filter(task => {
       const priorityMatch = !this.selectedPriority || task.priority === this.selectedPriority;
       const statusMatch = !this.selectedStatus || task.status === this.selectedStatus;
-      
       return priorityMatch && statusMatch;
     });
   }
@@ -126,15 +137,33 @@ export class TaskListComponent implements OnInit {
 
   onDelete(taskId: number): void {
     if (confirm('Are you sure you want to delete this task?')) {
-      this.taskService.deleteTask(taskId).subscribe(() => {
-        this.loadTasks();
+      this.loading = true;
+      this.errorMessage = '';
+      this.taskService.deleteTask(taskId).subscribe({
+        next: () => {
+          this.loadTasks();
+        },
+        error: () => {
+          this.errorMessage = 'Failed to delete task. Please try again.';
+          this.loading = false;
+        }
       });
     }
   }
 
   onStatusChange(task: Task): void {
-    this.taskService.updateTask(task).subscribe(() => {
-      this.loadTasks();
+    this.loading = true;
+    this.errorMessage = '';
+    // Only send the fields required by TaskRequest
+    const { title, description, priority, status, dueDate } = task;
+    this.taskService.updateTask(task.id, { title, description, priority, status, dueDate }).subscribe({
+      next: () => {
+        this.loadTasks();
+      },
+      error: () => {
+        this.errorMessage = 'Failed to update task status. Please try again.';
+        this.loading = false;
+      }
     });
   }
 }

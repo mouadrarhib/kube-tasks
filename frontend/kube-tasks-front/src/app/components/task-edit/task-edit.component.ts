@@ -52,6 +52,8 @@ export class TaskEditComponent implements OnInit {
   taskId!: number;
   task?: Task;
   taskForm!: FormGroup;
+  errorMessage = '';
+  loading = false;
 
   constructor(
     private fb: FormBuilder,
@@ -71,46 +73,54 @@ export class TaskEditComponent implements OnInit {
 
   createForm(): void {
     this.taskForm = this.fb.group({
-      id: [null],
       title: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.minLength(5)]],
-      priority: [TaskPriority.Medium, Validators.required],
-      status: [TaskStatus.Todo, Validators.required],
-      dueDate: [null],
-      createdAt: [null]
+      priority: [TaskPriority.MEDIUM, Validators.required],
+      status: [TaskStatus.TODO, Validators.required],
+      dueDate: [null]
     });
   }
 
   loadTask(): void {
-    this.taskService.getTaskById(this.taskId).subscribe(task => {
-      if (!task) {
-        this.router.navigate(['/tasks']);
-        return;
+    this.loading = true;
+    this.errorMessage = '';
+    this.taskService.getTaskById(this.taskId).subscribe({
+      next: task => {
+        if (!task) {
+          this.router.navigate(['/tasks']);
+          return;
+        }
+        this.task = task;
+        this.taskForm.patchValue({
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          status: task.status,
+          dueDate: task.dueDate
+        });
+        this.loading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Failed to load task. Please try again.';
+        this.loading = false;
       }
-
-      this.task = task;
-      
-      this.taskForm.patchValue({
-        id: task.id,
-        title: task.title,
-        description: task.description,
-        priority: task.priority,
-        status: task.status,
-        dueDate: task.dueDate,
-        createdAt: task.createdAt
-      });
     });
   }
 
-  onSubmit(): void {
+   onSubmit(): void {
     if (this.taskForm.valid) {
-      const updatedTask: Task = this.taskForm.value;
-      
-      this.taskService.updateTask(updatedTask).subscribe(() => {
-        this.router.navigate(['/tasks']);
+      this.loading = true;
+      this.errorMessage = '';
+      const { title, description, priority, status, dueDate } = this.taskForm.value;
+      this.taskService.updateTask(this.taskId, { title, description, priority, status, dueDate }).subscribe({
+        next: () => this.router.navigate(['/tasks']),
+        error: () => {
+          this.errorMessage = 'Failed to update task. Please try again.';
+          this.loading = false;
+        }
       });
     } else {
-      this.markFormGroupTouched(this.taskForm);
+      this.taskForm.markAllAsTouched();
     }
   }
 

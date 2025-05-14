@@ -4,7 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TaskService } from '../../services/task.service';
 import { TaskFormComponent } from '../shared/task-form/task-form.component';
-import { Task, TaskPriority, TaskStatus } from '../../models/task.model';
+import { TaskPriority, TaskStatus, TaskRequest } from '../../models/task.model';
 
 @Component({
   selector: 'app-task-add',
@@ -25,6 +25,7 @@ import { Task, TaskPriority, TaskStatus } from '../../models/task.model';
           (submitForm)="onSubmit()"
           submitButtonText="Create Task">
         </app-task-form>
+        <div *ngIf="errorMessage" class="error mt-2">{{ errorMessage }}</div>
       </div>
     </section>
   `,
@@ -37,10 +38,14 @@ import { Task, TaskPriority, TaskStatus } from '../../models/task.model';
       from { transform: translateY(20px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
+    .error {
+      color: #d32f2f;
+    }
   `]
 })
 export class TaskAddComponent {
   taskForm: FormGroup;
+  errorMessage = '';
 
   constructor(
     private fb: FormBuilder,
@@ -50,30 +55,23 @@ export class TaskAddComponent {
     this.taskForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.minLength(5)]],
-      priority: [TaskPriority.Medium, Validators.required],
-      status: [TaskStatus.Todo, Validators.required],
+      priority: [TaskPriority.MEDIUM, Validators.required],
+      status: [TaskStatus.TODO, Validators.required],
       dueDate: [null]
     });
   }
 
   onSubmit(): void {
     if (this.taskForm.valid) {
-      this.taskService.addTask(this.taskForm.value).subscribe(() => {
-        this.router.navigate(['/tasks']);
+      const taskRequest: TaskRequest = { ...this.taskForm.value };
+      this.taskService.createTask(taskRequest).subscribe({
+        next: () => this.router.navigate(['/tasks']),
+        error: err => {
+          this.errorMessage = 'Failed to create task. Please try again.';
+        }
       });
     } else {
-      this.markFormGroupTouched(this.taskForm);
+      this.taskForm.markAllAsTouched();
     }
-  }
-
-  // Helper method to mark all form controls as touched
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.values(formGroup.controls).forEach(control => {
-      control.markAsTouched();
-      
-      if ((control as FormGroup).controls) {
-        this.markFormGroupTouched(control as FormGroup);
-      }
-    });
   }
 }

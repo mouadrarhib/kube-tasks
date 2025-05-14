@@ -1,23 +1,24 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Task, TaskStatus } from '../../../models/task.model';
+import { Task, TaskPriority, TaskStatus } from '../../../models/task.model';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-task-item',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="task-card card" [ngClass]="getPriorityClass()">
       <div class="flex justify-between">
-        <h3 class="task-title" [ngClass]="{'completed': task.status === 'completed'}">
+        <h3 class="task-title" [ngClass]="{'completed': task.status === TaskStatus.COMPLETED}">
           {{ task.title }}
         </h3>
-        <span class="task-badge" [ngClass]="'status-' + task.status">
+        <span class="task-badge" [ngClass]="'status-' + task.status.toLowerCase()">
           {{ getStatusLabel() }}
         </span>
       </div>
       
-      <p class="task-description" [ngClass]="{'completed': task.status === 'completed'}">
+      <p class="task-description" [ngClass]="{'completed': task.status === TaskStatus.COMPLETED}">
         {{ task.description }}
       </p>
       
@@ -30,14 +31,14 @@ import { Task, TaskStatus } from '../../../models/task.model';
       
       <div class="task-actions">
         <div class="status-selector">
-          <select 
-            [value]="task.status" 
-            (change)="onStatusChange($event)"
-            [disabled]="task.status === 'completed'"
+          <select
+            [(ngModel)]="task.status"
+            (ngModelChange)="onStatusChangeDirect($event)"
+            [disabled]="task.status === TaskStatus.COMPLETED"
             class="status-select">
-            <option value="todo">To Do</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
+            <option [ngValue]="TaskStatus.TODO">To Do</option>
+            <option [ngValue]="TaskStatus.IN_PROGRESS">In Progress</option>
+            <option [ngValue]="TaskStatus.COMPLETED">Completed</option>
           </select>
         </div>
         
@@ -173,35 +174,40 @@ export class TaskItemComponent {
   @Output() delete = new EventEmitter<number>();
   @Output() statusChange = new EventEmitter<Task>();
 
+  TaskStatus = TaskStatus; // Expose enum to template
+  TaskPriority = TaskPriority;
+
   getPriorityClass(): string {
-    return `priority-${this.task.priority}`;
+  return `priority-${(this.task.priority || '').toString().toLowerCase()}`;
   }
 
-  getPriorityLabel(): string {
-    switch(this.task.priority) {
-      case 'high': return 'High Priority';
-      case 'medium': return 'Medium Priority';
-      case 'low': return 'Low Priority';
-      default: return 'Unknown Priority';
-    }
+getPriorityLabel(): string {
+  console.log('Priority value:', this.task.priority);
+  switch ((this.task.priority || '').toString().toUpperCase()) {
+    case TaskPriority.HIGH: return 'High Priority';
+    case TaskPriority.MEDIUM: return 'Medium Priority';
+    case TaskPriority.LOW: return 'Low Priority';
+    default: return 'Unknown Priority';
   }
+}
 
   getStatusLabel(): string {
     switch(this.task.status) {
-      case 'todo': return 'To Do';
-      case 'in-progress': return 'In Progress';
-      case 'completed': return 'Completed';
+      case TaskStatus.TODO: return 'To Do';
+      case TaskStatus.IN_PROGRESS: return 'In Progress';
+      case TaskStatus.COMPLETED: return 'Completed';
       default: return 'Unknown Status';
     }
   }
 
   isOverdue(): boolean {
     if (!this.task.dueDate) return false;
-    
     const today = new Date();
     const dueDate = new Date(this.task.dueDate);
-    
-    return dueDate < today && this.task.status !== 'completed';
+    // Remove time part for comparison
+    today.setHours(0,0,0,0);
+    dueDate.setHours(0,0,0,0);
+    return dueDate < today && this.task.status !== TaskStatus.COMPLETED;
   }
 
   onEdit(): void {
@@ -215,12 +221,18 @@ export class TaskItemComponent {
   onStatusChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     const newStatus = select.value as TaskStatus;
-    
     const updatedTask: Task = {
       ...this.task,
       status: newStatus
     };
-    
     this.statusChange.emit(updatedTask);
   }
+
+  onStatusChangeDirect(newStatus: TaskStatus): void {
+  const updatedTask: Task = {
+    ...this.task,
+    status: newStatus
+  };
+  this.statusChange.emit(updatedTask);
+}
 }

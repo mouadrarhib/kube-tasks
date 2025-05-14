@@ -47,9 +47,9 @@ import { TaskPriority, TaskStatus } from '../../../models/task.model';
             formControlName="priority"
             [ngClass]="{'invalid': isInvalid('priority')}"
           >
-            <option [value]="TaskPriority.Low">Low</option>
-            <option [value]="TaskPriority.Medium">Medium</option>
-            <option [value]="TaskPriority.High">High</option>
+            <option [value]="TaskPriority.LOW">Low</option>
+            <option [value]="TaskPriority.MEDIUM">Medium</option>
+            <option [value]="TaskPriority.HIGH">High</option>
           </select>
           <div *ngIf="isInvalid('priority')" class="text-error">
             Priority is required.
@@ -63,9 +63,9 @@ import { TaskPriority, TaskStatus } from '../../../models/task.model';
             formControlName="status"
             [ngClass]="{'invalid': isInvalid('status')}"
           >
-            <option [value]="TaskStatus.Todo">To Do</option>
-            <option [value]="TaskStatus.InProgress">In Progress</option>
-            <option [value]="TaskStatus.Completed">Completed</option>
+            <option [value]="TaskStatus.TODO">To Do</option>
+            <option [value]="TaskStatus.IN_PROGRESS">In Progress</option>
+            <option [value]="TaskStatus.COMPLETED">Completed</option>
           </select>
           <div *ngIf="isInvalid('status')" class="text-error">
             Status is required.

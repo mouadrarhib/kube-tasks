@@ -1,13 +1,21 @@
 export enum TaskPriority {
-  Low = 'low',
-  Medium = 'medium',
-  High = 'high'
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH'
 }
 
 export enum TaskStatus {
-  Todo = 'todo',
-  InProgress = 'in-progress',
-  Completed = 'completed'
+  TODO = 'TODO',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED'
+}
+
+export interface TaskRequest {
+  title: string;
+  description: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  dueDate: Date | null;
 }
 
 export interface Task {
@@ -16,7 +24,7 @@ export interface Task {
   description: string;
   priority: TaskPriority;
   status: TaskStatus;
-  dueDate?: Date;
+  dueDate: Date | null;
   createdAt: Date;
-  updatedAt?: Date;
+  updatedAt: Date;
 }

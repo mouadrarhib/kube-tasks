@@ -3,11 +3,12 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './components/shared/header/header.component';
 import { FooterComponent } from './components/shared/footer/footer.component';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterModule, CommonModule, HeaderComponent, FooterComponent],
+  imports: [RouterModule, CommonModule, HeaderComponent, FooterComponent, HttpClientModule],
   template: `
     <div class="app-container">
       <app-header></app-header>

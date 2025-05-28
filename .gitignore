@@ -40,3 +40,6 @@ build/
 # Sensitive configuration files
 application-secrets.yml
 
+# k8s files 
+secret.yaml
+

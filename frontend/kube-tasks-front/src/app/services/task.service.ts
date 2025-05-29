@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment.prod';
   providedIn: 'root'
 })
 export class TaskService {
-private apiUrl = environment.apiUrl;
+private apiUrl = 'http://backend-service.kube-tasks.svc.cluster.local/api/tasks';
 
   constructor(private http: HttpClient) { }
 
